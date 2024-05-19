@@ -4,7 +4,10 @@ Redshift lab exercises
 1. [RedShift Table Design](#redshift-table-design)
 2. [Load Tables](#load-tables)
 3. [Ongoing Loads - ELT](#ongoing-loads)
-4. [Stored Procedure - Handling Exception](#stored-procedure---exception-handling)
+    1. [Stored Procedure](#stored-procedure)
+    2. [Stored Procedure - Handling Exception](#stored-procedure---exception-handling)
+    3. [Materialized Views](#materialized-views)
+    4. [Functions](#functions)
 
 ## Redshift Table Design
 
@@ -260,3 +263,168 @@ CREATE TABLE stage_lineitem2 (LIKE stage_lineitem);
 CREATE TABLE procedure_log
 (log_timestamp timestamp, procedure_name varchar(100), error_message varchar(255));
 ```
+
+### Atomic
+```sql
+CREATE OR REPLACE PROCEDURE pr_divide_by_zero() AS
+$$
+DECLARE
+	v_int int;
+BEGIN
+	v_int := 1/0;
+EXCEPTION
+	WHEN OTHERS THEN
+		INSERT INTO procedure_log VALUES (getdate(), 'pr_divide_by_zero', sqlerrm);
+		RAISE INFO 'pr_divide_by_zero: %', sqlerrm;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE PROCEDURE pr_insert_stage() AS
+$$
+BEGIN
+	TRUNCATE stage_lineitem2;
+
+	INSERT INTO stage_lineitem2
+	SELECT * FROM stage_lineitem;
+
+	call pr_divide_by_zero();
+EXCEPTION
+	WHEN OTHERS THEN
+		RAISE EXCEPTION 'pr_insert_stage: %', sqlerrm;
+END;
+$$
+LANGUAGE plpgsql;
+```
+#### Call stored procedure
+```sql
+CALL pr_insert_stage();
+```
+
+#### Validate staging table
+```sql
+SELECT COUNT(*) FROM stage_lineitem2; --0
+```
+
+#### Check log table
+```sql
+SELECT * FROM procedure_log ORDER BY log_timestamp DESC;
+```
+
+### Non-atomic
+```sql
+CREATE OR REPLACE PROCEDURE pr_divide_by_zero_v2() NONATOMIC AS
+$$
+DECLARE
+	v_int int;
+BEGIN
+	v_int := 1/0;
+EXCEPTION
+	WHEN OTHERS THEN
+		INSERT INTO procedure_log VALUES (getdate(), 'pr_divide_by_zero_v2', sqlerrm);
+		RAISE INFO 'pr_divide_by_zero_v2: %', sqlerrm;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE pr_insert_stage_v2() NONATOMIC AS
+$$
+BEGIN
+	TRUNCATE stage_lineitem2;
+
+	INSERT INTO stage_lineitem2
+	SELECT * FROM stage_lineitem;
+
+	call pr_divide_by_zero_v2();
+EXCEPTION
+	WHEN OTHERS THEN
+		RAISE EXCEPTION 'pr_insert_stage_v2: %', sqlerrm;
+END;
+$$
+LANGUAGE plpgsql;
+```
+
+#### Calling non-atomic stored procedure
+```sql
+CALL pr_insert_stage_v2();
+```
+
+#### Validate staging table
+```sql
+SELECT COUNT(*) FROM stage_lineitem2;
+```
+
+#### Check log table
+```sql
+SELECT * FROM procedure_log ORDER BY log_timestamp DESC
+```
+
+## Materialized Views
+### Query without materialized view
+```sql
+select n_name, s_name, l_shipmode,
+  SUM(L_QUANTITY) Total_Qty
+from lineitem
+join supplier on l_suppkey = s_suppkey
+join nation on s_nationkey = n_nationkey
+where datepart(year, L_SHIPDATE) > 1997
+group by 1,2,3
+order by 3 desc
+limit 1000;
+```
+### Create materialized view
+```sql
+CREATE MATERIALIZED VIEW supplier_shipmode_agg
+AUTO REFRESH YES AS
+select l_suppkey, l_shipmode, datepart(year, L_SHIPDATE) l_shipyear,
+  SUM(L_QUANTITY)	TOTAL_QTY,
+  SUM(L_DISCOUNT) TOTAL_DISCOUNT,
+  SUM(L_TAX) TOTAL_TAX,
+  SUM(L_EXTENDEDPRICE) TOTAL_EXTENDEDPRICE  
+from LINEITEM
+group by 1,2,3;
+```
+
+### Query with materialized view
+```sql
+select n_name, s_name, l_shipmode,
+  SUM(TOTAL_QTY) Total_Qty
+from supplier_shipmode_agg
+join supplier on l_suppkey = s_suppkey
+join nation on s_nationkey = n_nationkey
+where l_shipyear > 1997
+group by 1,2,3
+order by 3 desc
+limit 1000;
+```
+
+## Functions
+### Python Function
+```
+create function f_py_greater (a float, b float)
+  returns float
+stable
+as $$
+  if a > b:
+    return a
+  return b
+$$ language plpythonu;
+
+select f_py_greater (l_extendedprice, l_discount) from lineitem limit 10
+```
+
+### SQL Function
+```sql
+create function f_sql_greater (float, float)
+  returns float
+stable
+as $$
+  select case when $1 > $2 then $1
+    else $2
+  end
+$$ language sql;  
+
+select f_sql_greater (l_extendedprice, l_discount) from lineitem limit 10
+```
+
