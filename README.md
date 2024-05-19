@@ -8,6 +8,9 @@ Redshift lab exercises
     2. [Stored Procedure - Handling Exception](#stored-procedure---exception-handling)
     3. [Materialized Views](#materialized-views)
     4. [Functions](#functions)
+4. [Data Sharing](#data-sharing)
+5. [Machine Learning](#machine-learning)
+6. [Query Data Lake](#query-data-lake)
 
 ## Redshift Table Design
 
@@ -401,7 +404,7 @@ limit 1000;
 
 ## Functions
 ### Python Function
-```
+```python
 create function f_py_greater (a float, b float)
   returns float
 stable
@@ -427,4 +430,13 @@ $$ language sql;
 
 select f_sql_greater (l_extendedprice, l_discount) from lineitem limit 10
 ```
+
+## Data Sharing
+
+
+## Machine Learning
+
+
+## Query Data Lake
+
 
