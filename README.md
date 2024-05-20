@@ -116,6 +116,8 @@ create table partsupp (
 diststyle even;
 ```
 
+[go to top](#redshift)
+
 ## Load Tables
 ```sql
 COPY region FROM 's3://redshift-labs/data/region/region.tbl.lzo'
