@@ -446,51 +446,94 @@ select current_namespace;
 select current_namespace;
 ```
 
-### Create data share
+### Create data share on producer
+#### Create data share
 ```sql
-
+CREATE DATASHARE cust_share SET PUBLICACCESSIBLE TRUE
 ```
 
-### Add schema to data share
+#### Add schema to data share
 ```sql
-
+ALTER DATASHARE cust_share ADD SCHEMA public;
 ```
 
-### Add customer table to data share
+#### Add customer table to data share
 ```sql
-
+ALTER DATASHARE cust_share ADD TABLE public.customer;
 ```
 
-### View shared objects
+#### View shared objects
 ```sql
-
+show datashares;
+select * from SVV_DATASHARE_OBJECTS;
 ```
 
-### Granting access to consumer cluster
+#### Granting access to consumer cluster
 ```sql
-
+Grant USAGE ON DATASHARE cust_share to NAMESPACE '<consumer namespace>'
 ```
 
-### Create local database
-```sql
+### Query data from consumer
 
+#### View shared objects
+```sql
+show datashares;
+select * from SVV_DATASHARE_OBJECTS;
 ```
 
-### Select query to check count
+#### Create local database
 ```sql
+CREATE DATABASE cust_db FROM DATASHARE cust_share OF NAMESPACE '<<producer namespace>';
+```
 
+#### Select query to check count
+```sql
+select count(*) from cust_db.public.customer; -- count 15000000
 ```
 
 ### Create external schema in consumer
-```sql
 
+#### Create local schema
+```sql
+CREATE EXTERNAL SCHEMA cust_db_public
+FROM REDSHIFT
+DATABASE 'cust_db'
+SCHEMA 'public';
 ```
 
-### load local data and join to shared data
+#### Select query to check the count
 ```sql
-
+select count(*) from cust_db_public.customer; -- count 15000000
 ```
 
+### Load local data and join to shared data
+
+#### Create orders table in provisioned cluster (consumer).
+```sql
+DROP TABLE IF EXISTS orders;
+create table orders
+(  O_ORDERKEY bigint NOT NULL,  
+O_CUSTKEY bigint,  
+O_ORDERSTATUS varchar(1),  
+O_TOTALPRICE decimal(18,4),  
+O_ORDERDATE Date,  
+O_ORDERPRIORITY varchar(15),  
+O_CLERK varchar(15),  
+O_SHIPPRIORITY Integer,  O_COMMENT varchar(79))
+distkey (O_ORDERKEY)
+sortkey (O_ORDERDATE);
+```
+
+#### Load orders table from public data set
+```sql
+copy orders from 's3://redshift-labs/data/orders/orders.tbl.'
+iam_role default region 'us-west-2' lzop delimiter '|' COMPUPDATE PRESET;
+```
+
+#### Select count to verify the data load
+```sql
+select count(*) from orders;  -- count 76000000
+```
 
 
 ## Machine Learning
