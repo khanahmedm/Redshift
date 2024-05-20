@@ -194,6 +194,8 @@ vacuum recluster orders;
 vacuum recluster orders boost;
 ```
 
+[go to top](#redshift)
+
 ## Ongoing Loads
 ### Staging Table
 ```sql
@@ -437,6 +439,8 @@ $$ language sql;
 select f_sql_greater (l_extendedprice, l_discount) from lineitem limit 10
 ```
 
+[go to top](#redshift)
+
 ## Data Sharing
 
 ### Identify namespaces
@@ -557,10 +561,16 @@ JOIN orders o on c_custkey = o_custkey
 GROUP BY c_mktsegment, o_orderpriority;
 ```
 
+[go to top](#redshift)
 
 ## Machine Learning
 
 
+[go to top](#redshift)
+
 ## Query Data Lake
+
+
+[go to top](#redshift)
 
 
