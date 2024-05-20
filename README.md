@@ -539,6 +539,22 @@ iam_role default region 'us-west-2' lzop delimiter '|' COMPUPDATE PRESET;
 select count(*) from orders;  -- count 76000000
 ```
 
+#### Joining locally loaded order data to shared customer data.
+```sql
+SELECT c_mktsegment, o_orderpriority, sum(o_totalprice)
+FROM cust_db.public.customer c
+JOIN orders o on c_custkey = o_custkey
+GROUP BY c_mktsegment, o_orderpriority;
+```
+
+#### Using the local schema instead of the datashare database
+```sql
+SELECT c_mktsegment, o_orderpriority, sum(o_totalprice)
+FROM cust_db_public.customer c
+JOIN orders o on c_custkey = o_custkey
+GROUP BY c_mktsegment, o_orderpriority;
+```
+
 
 ## Machine Learning
 
