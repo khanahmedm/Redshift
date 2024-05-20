@@ -9,8 +9,12 @@ Redshift lab exercises
     3. [Materialized Views](#materialized-views)
     4. [Functions](#functions)
 4. [Data Sharing](#data-sharing)
-5. [Machine Learning](#machine-learning)
-6. [Query Data Lake](#query-data-lake)
+    1. [Create data share on producer](#create-data-share-on-producer)
+    2. [Query data from consumer](#query-data-from-consumer)
+    3. [Create external schema in consumer](#create-external-schema-in-consumer)
+    4. [Load local data and join to shared data](#load-local-data-and-join-to-shared-data)
+6. [Machine Learning](#machine-learning)
+7. [Query Data Lake](#query-data-lake)
 
 ## Redshift Table Design
 
