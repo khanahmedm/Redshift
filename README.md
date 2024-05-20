@@ -114,31 +114,31 @@ diststyle even;
 
 ## Load Tables
 ```sql
-COPY region FROM 's3://redshift-immersionday-labs/data/region/region.tbl.lzo'
+COPY region FROM 's3://redshift-labs/data/region/region.tbl.lzo'
 iam_role default
 region 'us-west-2' lzop delimiter '|' COMPUPDATE PRESET;
 
-copy customer from 's3://redshift-immersionday-labs/data/customer/customer.tbl.'
+copy customer from 's3://redshift-labs/data/customer/customer.tbl.'
 iam_role default
 region 'us-west-2' lzop delimiter '|' COMPUPDATE PRESET;
 
-copy orders from 's3://redshift-immersionday-labs/data/orders/orders.tbl.'
+copy orders from 's3://redshift-labs/data/orders/orders.tbl.'
 iam_role default
 region 'us-west-2' lzop delimiter '|' COMPUPDATE PRESET;
 
-copy part from 's3://redshift-immersionday-labs/data/part/part.tbl.'
+copy part from 's3://redshift-labs/data/part/part.tbl.'
 iam_role default
 region 'us-west-2' lzop delimiter '|' COMPUPDATE PRESET;
 
-copy supplier from 's3://redshift-immersionday-labs/data/supplier/supplier.json' manifest
+copy supplier from 's3://redshift-labs/data/supplier/supplier.json' manifest
 iam_role default
 region 'us-west-2' lzop delimiter '|' COMPUPDATE PRESET;
 
-copy lineitem from 's3://redshift-immersionday-labs/data/lineitem-part/'
+copy lineitem from 's3://redshift-labs/data/lineitem-part/'
 iam_role default
 region 'us-west-2' gzip delimiter '|' COMPUPDATE PRESET;
 
-copy partsupp from 's3://redshift-immersionday-labs/data/partsupp/partsupp.tbl.'
+copy partsupp from 's3://redshift-labs/data/partsupp/partsupp.tbl.'
 iam_role default
 region 'us-west-2' lzop delimiter '|' COMPUPDATE PRESET;
 ```
@@ -158,7 +158,7 @@ select count(*) from orders;
 
 ### Troubleshooting Loads
 ```sql
-COPY customer FROM 's3://redshift-immersionday-labs/data/nation/nation.tbl.'
+COPY customer FROM 's3://redshift-labs/data/nation/nation.tbl.'
 iam_role default
 region 'us-west-2' lzop delimiter '|' noload;
 
@@ -432,6 +432,65 @@ select f_sql_greater (l_extendedprice, l_discount) from lineitem limit 10
 ```
 
 ## Data Sharing
+
+### Identify namespaces
+#### Find producer namespace
+```sql
+-- This should be run on the producer 
+select current_namespace;
+```
+
+### Find consumer namespace
+```sql
+-- This should be run on consumer 
+select current_namespace;
+```
+
+### Create data share
+```sql
+
+```
+
+### Add schema to data share
+```sql
+
+```
+
+### Add customer table to data share
+```sql
+
+```
+
+### View shared objects
+```sql
+
+```
+
+### Granting access to consumer cluster
+```sql
+
+```
+
+### Create local database
+```sql
+
+```
+
+### Select query to check count
+```sql
+
+```
+
+### Create external schema in consumer
+```sql
+
+```
+
+### load local data and join to shared data
+```sql
+
+```
+
 
 
 ## Machine Learning
