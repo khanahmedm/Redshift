@@ -669,6 +669,44 @@ SETTINGS (
 ;
 ```
 
+### Check status of the model
+```sql
+show model model_bank_marketing;
+```
+
+### Check accuracy and run inference query
+```sql
+--Inference/Accuracy on inference data
+
+WITH infer_data
+ AS (
+    SELECT  y as actual, func_model_bank_marketing(age,jobtype,marital,education,"default",housing,loan,contact,month,day_of_week,duration,campaign,pdays,previous,poutcome,emp_var_rate,cons_price_idx,cons_conf_idx,euribor3m,nr_employed) AS predicted,
+     CASE WHEN actual = predicted THEN 1::INT
+         ELSE 0::INT END AS correct
+    FROM bank_details_inference
+    ),
+ aggr_data AS (
+     SELECT SUM(correct) as num_correct, COUNT(*) as total FROM infer_data
+ )
+ SELECT (num_correct::float/total::float) AS accuracy FROM aggr_data;
+
+--Predict how many will subscribe for term deposit vs not subscribe
+
+WITH term_data AS ( SELECT func_model_bank_marketing( age,jobtype,marital,education,"default",housing,loan,contact,month,day_of_week,duration,campaign,pdays,previous,poutcome,emp_var_rate,cons_price_idx,cons_conf_idx,euribor3m,nr_employed) AS predicted
+FROM bank_details_inference )
+SELECT
+CASE WHEN predicted = 'Y'  THEN 'Yes-will-do-a-term-deposit'
+     WHEN predicted = 'N'  THEN 'No-term-deposit'
+     ELSE 'Neither' END as deposit_prediction,
+COUNT(1) AS count
+from term_data GROUP BY 1;
+```
+
+### Check model explainability
+```sql
+select explain_model('model_bank_marketing');
+```
+
 [go to top](#redshift)
 
 ## Query Data Lake
