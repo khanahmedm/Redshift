@@ -20,6 +20,10 @@ Redshift lab exercises
     4. [Create model](#create-model)
     5. [Check accuracy and run inference query](#check-accuracy-and-run-inference-query)  
 6. [Query Data Lake](#query-data-lake)
+    1. [Create external schema](#create-external-schema)
+    2. [Query the data in Glue Data Catalog](#query-the-data-in-glue-data-catalog)
+    3. [Create internal schema](#create-internal-schema)
+    4. [Create a combined view](#create-a-combined-view)
 
 ## Redshift Table Design
 
@@ -601,7 +605,7 @@ CREATE TABLE bank_details_training(
 COPY bank_details_training from 's3://redshift-downloads/redshift-ml/workshop/bank-marketing-data/training_data/' REGION 'us-east-1' IAM_ROLE default CSV IGNOREHEADER 1 delimiter ';';
 ```
 
-### Create a table for inference data
+### Create table for inference data
 ```sql
 CREATE TABLE bank_details_inference(
    age numeric,
@@ -716,7 +720,83 @@ select explain_model('model_bank_marketing');
 
 ## Query Data Lake
 
-https://github.com/khanahmedm/Redshift/blob/9d82fde38bb789978554cb0cb80292daef6ca5cb/create_external_schema.sql#L1-L4
+### Create external (and DB) for Redshift spectrum
+
+#### Create Glue Crawler
+
+##### Add data source
+
+##### Create a database
+
+##### Run Glue Crawler
+
+#### Create external schema
+```sql
+CREATE external SCHEMA adb305
+FROM data catalog DATABASE 'spectrumdb'
+IAM_ROLE default
+CREATE external DATABASE if not exists;
+```
+
+### Query the data in Glue Data Catalog
+```sql
+SELECT TO_CHAR(pickup_datetime, 'YYYY-MM-DD'),COUNT(*)
+FROM adb305.ny_pub
+WHERE YEAR = 2016 and Month = 01
+GROUP BY 1
+ORDER BY 2;
+```
+
+### Create internal schema
+```sql
+CREATE SCHEMA workshop_das;
+```
+
+#### Run CTAS by selecting from external table
+```sql
+CREATE TABLE workshop_das.taxi_201601 AS
+SELECT *
+FROM adb305.ny_pub
+WHERE year = 2016 AND month = 1 AND type = 'green';
+```
+
+#### Analyze table
+```sql
+ANALYZE COMPRESSION workshop_das.taxi_201601;
+```
+
+#### Add more data to internal table
+```sql
+INSERT INTO workshop_das.taxi_201601 (
+SELECT *
+FROM adb305.ny_pub
+WHERE year = 2016 AND month = 1 AND type != 'green');
+```
+
+#### Drop partitions from external table
+```sql
+ALTER TABLE adb305.ny_pub DROP PARTITION(year=2016, month=1, type='fhv');
+ALTER TABLE adb305.ny_pub DROP PARTITION(year=2016, month=1, type='green');
+ALTER TABLE adb305.ny_pub DROP PARTITION(year=2016, month=1, type='yellow');
+```
+
+### Create a combined view
+```sql
+CREATE VIEW adb305_view_NYTaxiRides AS
+  SELECT * FROM workshop_das.taxi_201601
+  UNION ALL
+  SELECT * FROM adb305.ny_pub
+WITH NO SCHEMA BINDING;
+```
+
+#### Explain the execution plan
+```sql
+EXPLAIN
+SELECT year, month, type, COUNT(*)
+FROM adb305_view_NYTaxiRides
+WHERE year = 2016 AND month IN (1,2) AND passenger_count = 4
+GROUP BY 1,2,3 ORDER BY 1,2,3;
+```
 
 
 [go to top](#redshift)
