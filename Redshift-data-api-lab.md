@@ -65,7 +65,7 @@ region 'us-west-2' lzop delimiter '|' COMPUPDATE PRESET;
 ```
 
 ## Create policy
-```
+```json
 {
 "Version": "2012-10-17",
 "Statement": [
@@ -87,7 +87,7 @@ region 'us-west-2' lzop delimiter '|' COMPUPDATE PRESET;
 ```
 
 ## Create Lambda function
-```
+```python
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -179,7 +179,7 @@ def lambda_handler(event, context):
 
 
 ## Test API in browser
-```
+```html
 <html>
 <head><meta http-equiv="Access-Control-Allow-Origin" content="*"></head>
 <script>
