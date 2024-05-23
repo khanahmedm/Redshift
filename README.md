@@ -1,5 +1,5 @@
 # Redshift
-This repository contained Redshift lab exercises. Please refer to complete set of steps [here](redshift-labs.md)
+This repository contained Redshift lab exercises. Please refer to complete set of steps [here](redshift-lab.md)
 
 1. [RedShift Table Design](#redshift-table-design)
 2. [Load Tables](#load-tables)
