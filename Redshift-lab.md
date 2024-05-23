@@ -565,6 +565,109 @@ GROUP BY c_mktsegment, o_orderpriority;
 
 ## Machine Learning
 
+### Download the dataset
+https://archive.ics.uci.edu/dataset/222/bank+marketing
+
+### Create table for training data
+```sql
+CREATE TABLE bank_details_training(
+   age numeric,
+   jobtype varchar,
+   marital varchar,
+   education varchar,
+   "default" varchar,
+   housing varchar,
+   loan varchar,
+   contact varchar,
+   month varchar,
+   day_of_week varchar,
+   duration numeric,
+   campaign numeric,
+   pdays numeric,
+   previous numeric,
+   poutcome varchar,
+   emp_var_rate numeric,
+   cons_price_idx numeric,     
+   cons_conf_idx numeric,     
+   euribor3m numeric,
+   nr_employed numeric,
+   y boolean ) ;
+
+COPY bank_details_training from 's3://redshift-downloads/redshift-ml/workshop/bank-marketing-data/training_data/' REGION 'us-east-1' IAM_ROLE default CSV IGNOREHEADER 1 delimiter ';';
+```
+
+### Create a table for inference data
+```sql
+CREATE TABLE bank_details_inference(
+   age numeric,
+   jobtype varchar,
+   marital varchar,
+   education varchar,
+   "default" varchar,
+   housing varchar,
+   loan varchar,
+   contact varchar,
+   month varchar,
+   day_of_week varchar,
+   duration numeric,
+   campaign numeric,
+   pdays numeric,
+   previous numeric,
+   poutcome varchar,
+   emp_var_rate numeric,
+   cons_price_idx numeric,     
+   cons_conf_idx numeric,     
+   euribor3m numeric,
+   nr_employed numeric,
+   y boolean ) ;
+
+COPY bank_details_inference from 's3://redshift-downloads/redshift-ml/workshop/bank-marketing-data/inference_data/' REGION 'us-east-1' IAM_ROLE default CSV IGNOREHEADER 1 delimiter ';';
+```
+
+### Create a S3 bucket
+
+
+### Create model
+```sql
+
+DROP MODEL model_bank_marketing;
+
+
+CREATE MODEL model_bank_marketing
+FROM (
+SELECT    
+   age ,
+   jobtype ,
+   marital ,
+   education ,
+   "default" ,
+   housing ,
+   loan ,
+   contact ,
+   month ,
+   day_of_week ,
+   duration ,
+   campaign ,
+   pdays ,
+   previous ,
+   poutcome ,
+   emp_var_rate ,
+   cons_price_idx ,     
+   cons_conf_idx ,     
+   euribor3m ,
+   nr_employed ,
+   y
+FROM
+    bank_details_training )
+    TARGET y
+FUNCTION func_model_bank_marketing
+IAM_ROLE default
+SETTINGS (
+  S3_BUCKET '<<S3 bucket>>',
+  MAX_RUNTIME 3600
+  )
+;
+```
 
 [go to top](#redshift)
 
