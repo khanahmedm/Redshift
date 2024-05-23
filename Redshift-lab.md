@@ -716,6 +716,8 @@ select explain_model('model_bank_marketing');
 
 ## Query Data Lake
 
+https://github.com/khanahmedm/Redshift/blob/960ca80d17aee32f31044e0be448eeac8b779c72/create_external_schema.sql#L1C1-L4C40
+
 
 [go to top](#redshift)
 
