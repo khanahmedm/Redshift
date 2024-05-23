@@ -13,8 +13,13 @@ Redshift lab exercises
     2. [Query data from consumer](#query-data-from-consumer)
     3. [Create external schema in consumer](#create-external-schema-in-consumer)
     4. [Load local data and join to shared data](#load-local-data-and-join-to-shared-data)
-6. [Machine Learning](#machine-learning)
-7. [Query Data Lake](#query-data-lake)
+5. [Machine Learning](#machine-learning)
+    1. [Download the dataset](#download-the-dataset)
+    2. [Create table for training data](#create-table-for-training-data)
+    3. [Create table for inference data](#create-table-for-inference-data)
+    4. [Create model](#create-model)
+    5. [Check accuracy and run inference query](#check-accuracy-and-run-inference-query)  
+6. [Query Data Lake](#query-data-lake)
 
 ## Redshift Table Design
 
